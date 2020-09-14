@@ -47,6 +47,8 @@ voqc: VOQC/extraction/voqc.ml VOQC/extraction/_build/default/voqc.exe
 VOQC/extraction/_build/default/voqc.exe:
 	dune build voqc.exe --root VOQC/extraction
 
+numbers: $(VOQC)/BooleanCompilation.vo $(VOQC)/numbers.vo
+
 # Built by 'make examples'
 
 SQIR/examples/Deutsch.vo: $(examples)/Deutsch.v $(SQIR)/UnitarySem.vo $(QWIRE)/Dirac.vo $(QWIRE)/Proportional.vo
@@ -117,10 +119,12 @@ VOQC/src/RemoveZRotationBeforeMeasure.vo: $(VOQC)/RemoveZRotationBeforeMeasure.v
 
 VOQC/src/BooleanCompilation.vo: $(VOQC)/BooleanCompilation.v $(SQIR)/VectorStates.vo $(QWIRE)/Dirac.vo
 	coqc $(COQ_OPTS) $(VOQC)/BooleanCompilation.v
+VOQC/src/numbers.vo: $(VOQC)/BooleanCompilation.vo
+	coqc $(COQ_OPTS) $(VOQC)/numbers.v
 
 # Using a custom clean target to remove files from subdirectories
 clean:
-	rm -rf CoqMakefile CoqMakefile.conf {externals/QWIRE,SQIR/*,VOQC/src}/{*.vo,*.glob,.*.aux} .lia.cache VOQC/extraction/_build
+	rm -rf CoqMakefile CoqMakefile.conf {externals/QWIRE,SQIR/src,SQIR/examples,VOQC/src}/{*.vo,*.glob,.*.aux} .lia.cache VOQC/extraction/_build
 
 # This should be the last rule, to handle any targets not declared above
 #%: invoke-coqmakefile
