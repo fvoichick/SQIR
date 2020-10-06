@@ -168,7 +168,7 @@ Proof. intros. repeat constructor; auto. Qed.
 
 Lemma fresh_control : forall {dim} q1 q2 c,
   q1 <> q2 -> @is_fresh _ dim q1 c -> 
-  @is_fresh _ dim q1 (UnitaryOps.control q2 c).
+  @is_fresh _ dim q1 (control q2 c).
 Proof.
   intros.
   induction H0; simpl; try dependent destruction u.
@@ -348,20 +348,28 @@ Lemma CCX_correct : forall (dim : nat) a b c,
     Msimpl_light; reflexivity.
 Qed.
 
+Lemma pad_fresh_commutes : forall dim q (c : base_ucom dim) (A : Square 2),
+  is_fresh q c ->
+  WF_Matrix A ->
+  Mmult (@pad 1 q dim A) (uc_eval c) = Mmult (uc_eval c) (@pad 1 q dim A).
+Proof.
+  intros.
+  induction c; simpl; inversion H; subst; try dependent destruction u.
+  - rewrite <- Mmult_assoc. rewrite IHc2; try assumption.
+    rewrite Mmult_assoc. rewrite IHc1; try assumption.
+    rewrite Mmult_assoc. reflexivity.
+  - simpl. unfold pad. gridify; reflexivity.
+  - unfold ueval_cnot, pad. gridify; reflexivity.
+Qed.
+
 (* generalization of proj_commutes_1q_gate and proj_commutes_2q_gate *)
 Lemma proj_fresh_commutes : forall dim q b (c : base_ucom dim),
   is_fresh q c ->
   proj q dim b × uc_eval c = uc_eval c × proj q dim b.
 Proof.
-  intros.
-  induction c; simpl; inversion H; subst.
-  rewrite <- (Mmult_assoc (proj _ _ _)).
-  rewrite (Mmult_assoc _ _ (proj _ _ _)).
-  rewrite <- IHc1, IHc2 by auto.
-  rewrite Mmult_assoc. reflexivity.
-  apply proj_commutes_1q_gate; auto.
-  apply proj_commutes_2q_gate; auto.
-  Msimpl_light. reflexivity.
+  intros. apply pad_fresh_commutes.
+  - assumption.
+  - auto with wf_db.
 Qed.
 
 Lemma control_correct : forall (dim : nat) q (c : base_ucom dim),
