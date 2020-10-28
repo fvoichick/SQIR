@@ -1,7 +1,7 @@
 # Using the example from https://coq.inria.fr/refman/practical-tools/utilities.html#reusing-extending-the-generated-makefile
 
 # KNOWNTARGETS will not be passed along to CoqMakefile
-KNOWNTARGETS := CoqMakefile all examples mapper optimizer voqc clean
+KNOWNTARGETS := CoqMakefile all examples memory mapper optimizer voqc clean
 
 # KNOWNFILES will not get implicit targets from the final rule, and so
 # depending on them won't invoke the submake
@@ -28,6 +28,7 @@ invoke-coqmakefile: CoqMakefile
 QWIRE := externals/QWIRE
 SQIR := SQIR/src
 examples := SQIR/examples
+memory := SQIR/memory
 VOQC := VOQC/src
 
 COQ_OPTS := -R . Top
@@ -35,6 +36,8 @@ COQ_OPTS := -R . Top
 all: examples mapper optimizer $(VOQC)/PropagateClassical.vo $(VOQC)/RemoveZRotationBeforeMeasure.vo $(VOQC)/BooleanCompilation.vo
 
 examples: invoke-coqmakefile $(examples)/Deutsch.vo $(examples)/DeutschJozsa.vo $(examples)/GHZ.vo $(examples)/QPE.vo $(examples)/Simon.vo $(examples)/Superdense.vo $(examples)/Teleport.vo
+
+memory: invoke-coqmakefile $(memory)/Metrics.vo $(memory)/BigO.vo $(memory)/RBigO.vo
 
 mapper: invoke-coqmakefile $(VOQC)/SimpleMapping.vo $(VOQC)/MappingExamples.vo $(VOQC)/SimpleMappingWithLayout.vo
 
@@ -81,6 +84,17 @@ SQIR/examples/Teleport.vo: $(examples)/Teleport.v $(SQIR)/UnitarySem.vo $(SQIR)/
 
 SQIR/examples/Utilities.vo: $(examples)/Utilities.v $(SQIR)/VectorStates.vo
 	coqc $(COQ_OPTS) $(examples)/Utilities.v
+
+# Built by 'make memory'
+
+SQIR/memory/Metrics.vo : $(memory)/Metrics.v
+	coqc $(COQ_OPTS) $(memory)/Metrics.v
+
+SQIR/memory/BigO.vo : $(memory)/BigO.v
+	coqc $(COQ_OPTS) $(memory)/BigO.v
+
+SQIR/memory/RBigO.vo : $(memory)/RBigO.v $(memory)/BigO.vo
+	coqc $(COQ_OPTS) $(memory)/RBigO.v
 
 # Built by 'make mapper'
 
