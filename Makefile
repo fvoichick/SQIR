@@ -1,7 +1,11 @@
 # Using the example from https://coq.inria.fr/refman/practical-tools/utilities.html#reusing-extending-the-generated-makefile
 
 # KNOWNTARGETS will not be passed along to CoqMakefile
+<<<<<<< HEAD
 KNOWNTARGETS := CoqMakefile all examples memory mapper optimizer voqc clean
+=======
+KNOWNTARGETS := CoqMakefile all examples shor mapper optimizer voqc clean
+>>>>>>> master
 
 # KNOWNFILES will not get implicit targets from the final rule, and so
 # depending on them won't invoke the submake
@@ -37,7 +41,7 @@ all: examples mapper optimizer $(VOQC)/PropagateClassical.vo $(VOQC)/RemoveZRota
 
 examples: invoke-coqmakefile $(examples)/Deutsch.vo $(examples)/DeutschJozsa.vo $(examples)/GHZ.vo $(examples)/QPE.vo $(examples)/Simon.vo $(examples)/Superdense.vo $(examples)/Teleport.vo
 
-memory: invoke-coqmakefile $(memory)/Metrics.vo $(memory)/BigO.vo $(memory)/RBigO.vo
+shor: invoke-coqmakefile $(examples)/Shor.vo
 
 mapper: invoke-coqmakefile $(VOQC)/SimpleMapping.vo $(VOQC)/MappingExamples.vo $(VOQC)/SimpleMappingWithLayout.vo
 
@@ -45,7 +49,7 @@ optimizer: invoke-coqmakefile $(VOQC)/Optimize.vo VOQC/voqc.ml
 	cd VOQC/extraction && ./extract.sh
 	dune build voqc.exe --root VOQC
 
-voqc: $(VOQC)/Optimize.vo VOQC/voqc.ml VOQC/_build/default/voqc.exe
+voqc: VOQC/voqc.ml VOQC/_build/default/voqc.exe
 
 VOQC/_build/default/voqc.exe:
 	dune build voqc.exe --root VOQC
@@ -67,12 +71,6 @@ SQIR/examples/Grover.vo: $(examples)/Grover.v $(SQIR)/UnitaryOps.vo $(examples)/
 SQIR/examples/QPE.vo: $(examples)/QPE.v $(SQIR)/UnitaryOps.vo
 	coqc $(COQ_OPTS) $(examples)/QPE.v
 
-SQIR/examples/QPEGeneral.vo: $(examples)/QPEGeneral.v $(examples)/QPE.vo $(examples)/Utilities.vo
-	coqc $(COQ_OPTS) $(examples)/QPEGeneral.v
-
-SQIR/examples/Shor.vo: $(examples)/Shor.v $(SQIR)/QPEGeneral.vo
-	coqc $(COQ_OPTS) $(examples)/Shor.v
-
 SQIR/examples/Simon.vo: $(examples)/Simon.v $(SQIR)/UnitaryOps.vo $(examples)/Utilities.vo
 	coqc $(COQ_OPTS) $(examples)/Simon.v
 
@@ -85,16 +83,13 @@ SQIR/examples/Teleport.vo: $(examples)/Teleport.v $(SQIR)/UnitarySem.vo $(SQIR)/
 SQIR/examples/Utilities.vo: $(examples)/Utilities.v $(SQIR)/VectorStates.vo
 	coqc $(COQ_OPTS) $(examples)/Utilities.v
 
-# Built by 'make memory'
+# Built by 'make shor'
 
-SQIR/memory/Metrics.vo : $(memory)/Metrics.v
-	coqc $(COQ_OPTS) $(memory)/Metrics.v
+SQIR/examples/QPEGeneral.vo: $(examples)/QPEGeneral.v $(examples)/QPE.vo $(examples)/Utilities.vo
+	coqc $(COQ_OPTS) $(examples)/QPEGeneral.v
 
-SQIR/memory/BigO.vo : $(memory)/BigO.v
-	coqc $(COQ_OPTS) $(memory)/BigO.v
-
-SQIR/memory/RBigO.vo : $(memory)/RBigO.v $(memory)/BigO.vo
-	coqc $(COQ_OPTS) $(memory)/RBigO.v
+SQIR/examples/Shor.vo: $(examples)/Shor.v $(examples)/QPEGeneral.vo
+	coqc $(COQ_OPTS) $(examples)/Shor.v
 
 # Built by 'make mapper'
 
@@ -152,7 +147,7 @@ VOQC/src/BooleanCompilation.vo: $(VOQC)/BooleanCompilation.v $(SQIR)/VectorState
 
 # Using a custom clean target to remove files from subdirectories
 clean:
-	rm -rf CoqMakefile CoqMakefile.conf {externals/QWIRE,SQIR/*,VOQC/src}/{*.vo,*.vok,*.vos,*.glob,*.aux} .lia.cache VOQC/extraction/_build
+	rm -rf CoqMakefile CoqMakefile.conf */*/*.vo* */*/*.glob */*/*.aux .lia.cache VOQC/_build
 
 # This should be the last rule, to handle any targets not declared above
 #%: invoke-coqmakefile
