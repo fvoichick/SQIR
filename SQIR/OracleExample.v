@@ -24,6 +24,8 @@ Require Import Testing.
 Local Open Scope exp_scope.
 Local Open Scope nat_scope.
 
+Local Infix "==" := (@eqtype.eq_op (tuple.tuple_eqType n32 eqtype.bool_eqType)).
+
 Fixpoint rotate_left_n (x : qvar) n :=
   match n with
   | 0 => skip
@@ -450,7 +452,6 @@ Definition collision_qexp
   skip) skip) skip) skip) skip) skip) skip) skip)
   skip) skip) skip) skip) skip) skip) skip) skip.
 
-(*
 Definition collision_spec
   (v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15 
   v0' v1' v2' v3' v4' v5' v6' v7' v8' v9' v10' v11' v12' v13' v14' v15' : DWORD)
@@ -460,23 +461,45 @@ Definition collision_spec
     v8'', v9'', v10'', v11'', v12'', v13'', v14'', v15'') :=
     chacha_spec v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15
   in
-  eqtype.eq_op v0' v0'' &&
-  eqtype.eq_op v1' v1'' &&
-  eqtype.eq_op v2' v2'' &&
-  eqtype.eq_op v3' v3'' &&
-  eqtype.eq_op v4' v4'' &&
-  eqtype.eq_op v5' v5'' &&
-  eqtype.eq_op v6' v6'' &&
-  eqtype.eq_op v7' v7'' &&
-  eqtype.eq_op v8' v8'' &&
-  eqtype.eq_op v9' v9'' &&
-  eqtype.eq_op v10' v10'' &&
-  eqtype.eq_op v11' v11'' &&
-  eqtype.eq_op v12' v12'' &&
-  eqtype.eq_op v13' v13'' &&
-  eqtype.eq_op v14' v14'' &&
-  eqtype.eq_op v15' v15''.
- *)
+  (v0' == v0'') && (v1' == v1'') && (v2' == v2'') && (v3' == v3'') &&
+  (v4' == v4'') && (v5' == v5'') && (v6' == v6'') && (v7' == v7'') &&
+  (v8' == v8'') && (v9' == v9'') && (v10' == v10'') && (v11' == v11'') &&
+  (v12' == v12'') && (v13' == v13'') && (v14' == v14'') && (v15' == v15'').
+
+  Definition tmp : var := 17.
+  Definition stack : var := 18.
+
+  Definition collision_vmap : qvar * nat -> var :=
+    fun '(x, _) =>
+    match x with
+    | L x' => x'
+    | G x' => x'
+    end.
+
+  Definition collision_benv := gen_genv (map (fun x => (Nat, x)) (seq 0 16)).
+
+  Definition compile_collision :=
+    trans_qexp
+    0 32 (fun _ => 1) collision_vmap collision_benv (Reg.empty _) tmp stack 0 nil
+    (chacha_qexp (G 0) (G 1) (G 2) (G 3) (G 4) (G 5) (G 6) (G 7)
+             (G 8) (G 9) (G 10) (G 11) (G 12) (G 13) (G 14) (G 15)).
+
+  Definition collision_pexp : pexp.
+  Proof.
+    destruct (compile_collision) eqn:E1.
+    - destruct p, p, o.
+      + apply p.
+      + discriminate.
+    - discriminate.
+  Defined.
+
+  Definition collision_func
+    v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15 :
+    func :=
+    (0,
+     map (fun x => (Nat, x, 1)) (seq 0 15),
+     collision_qexp v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15,
+     out).
 
 End Collision.
 
